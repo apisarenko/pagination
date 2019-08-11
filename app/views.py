@@ -21,30 +21,28 @@ def bus_stations(request):
             station_dict['Street'] = station['Street']
             station_dict['District'] = station['District']
             station_list.append(station_dict)
-    current_page = Paginator(station_list, 10)
+    paginator = Paginator(station_list, 10)
     page_number = request.GET.get('page')
-    page_number_1 = str(int(page_number) + 1)
-    page_number_2 = str(int(page_number) - 1)
 
-    params = urllib.parse.urlencode({'page': page_number_1})
-    params_2 = urllib.parse.urlencode({'page': page_number_2})
-
-    url = reverse(viewname='bus_stations') + '?' + params
-    url_2 = reverse(viewname='bus_stations') + '?' + params_2
-
-    if page_number == None or page_number == '1':
+    if page_number == None:
         page_number = 1
-        prev_page = None
-        next_page_url = url
+    page_object = paginator.get_page(page_number)
 
+    if page_object.has_next() == True:
+        next_page = reverse(viewname='bus_stations') + '?' \
+                    + urllib.parse.urlencode({'page': (str(int(page_number) + 1))})
     else:
-        page_number = page_number
-        prev_page = url_2
-        next_page_url = url
+        next_page = ''
+
+    if page_object.has_previous() == True:
+        prev_page = reverse(viewname='bus_stations') + '?' \
+                    + urllib.parse.urlencode({'page': (str(int(page_number) - 1))})
+    else:
+        prev_page = ''
 
     return render_to_response('index.html', context={
-        'bus_stations': current_page.page(page_number),
+        'bus_stations': paginator.page(page_number),
         'current_page': page_number,
         'prev_page_url': prev_page,
-        'next_page_url': next_page_url
+        'next_page_url': next_page
     })
